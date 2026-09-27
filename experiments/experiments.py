@@ -1,12 +1,7 @@
-"""
-experiments -
-
-Author:黄成钰
-Date:2026/9/26
-"""
 import numpy as np
 
 from src.perceptron_original import Perceptron
+from src.perceptron_dual import PerceptronDual
 
 
 X = np.array([
@@ -24,14 +19,40 @@ y = np.array([
 ])
 
 
-model = Perceptron()
+# =========================
+# 原始形式
+# =========================
 
-model.fit(X, y)
+original = Perceptron()
 
-print("w =", model.w)
-print("b =", model.b)
+original.fit(X, y)
 
-pred = model.predict(X)
+print("===== Original Perceptron =====")
 
-print("prediction =", pred)
+print("w =", original.w)
+print("b =", original.b)
+
+original_pred = original.predict(X)
+
+print("prediction =", original_pred)
+print("true label =", y)
+
+
+# =========================
+# 对偶形式
+# =========================
+
+dual = PerceptronDual()
+
+dual.fit(X, y)
+
+print("\n===== Dual Perceptron =====")
+
+print("alpha =", dual.alpha)
+print("w =", dual.w)
+print("b =", dual.b)
+
+dual_pred = dual.predict(X)
+
+print("prediction =", dual_pred)
 print("true label =", y)
