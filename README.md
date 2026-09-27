@@ -128,17 +128,13 @@ $$
 将其代入分类函数：
 
 $$
-w^T x+b
-=
-\sum_{j=1}^{N}\alpha_j y_j x_j^T x+b
+w^T x+b = \sum_{j=1}^{N}\alpha_j y_j x_j^T x+b
 $$
 
 因此：
 
 $$
-f(x)
-=
-\sum_{j=1}^{N}\alpha_j y_j(x_j^T x)+b
+f(x)= \sum_{j=1}^{N}\alpha_j y_j(x_j^T x)+b
 $$
 
 为了提高计算效率，可以预先计算 Gram 矩阵：
