@@ -1,23 +1,55 @@
 # Perceptron from Statistical Learning
 
+> A from-scratch implementation of the Perceptron algorithm based on Li Hang's *Statistical Learning Methods*, including primal and dual forms, experiments, visualization, and label-noise analysis.
+
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![NumPy](https://img.shields.io/badge/NumPy-Scientific%20Computing-orange)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualization-green)
+![Git](https://img.shields.io/badge/Git-Version%20Control-red)
+
+![Perceptron Decision Boundary](results/figures/perceptron_boundary.png)
+
 本项目基于李航《统计学习方法》中的感知机（Perceptron）算法，从理论、算法实现到实验验证，完整实现经典感知机模型。
 
-项目主要包含：
-
-- 感知机原始形式
-- 感知机对偶形式
-- Gram 矩阵实现
-- 随机数据实验
-- 样本量与参数更新次数实验
-- 训练集 / 测试集实验
-- 标签噪声实验
-- 分类决策边界可视化
+项目不仅实现感知机的**原始形式与对偶形式**，还设计随机数据、样本规模、训练测试集以及标签噪声实验，用于研究感知机的训练过程、收敛性质和泛化表现。
 
 ---
 
-## 1. 项目背景
+## Key Features
 
-感知机是最早的二分类线性分类模型之一，也是理解现代机器学习分类算法的重要基础。
+- 从零实现感知机原始形式
+- 从零实现感知机对偶形式
+- 使用 Gram 矩阵实现对偶形式计算
+- 实现二维分类决策边界可视化
+- 研究样本数量对参数更新次数的影响
+- 进行训练集 / 测试集实验
+- 研究标签噪声对感知机收敛性的影响
+- 使用 NumPy 和 Matplotlib 完成算法实现与实验分析
+- 使用 Git 进行版本管理，并通过 GitHub 管理项目
+
+---
+
+## 1. Project Motivation
+
+感知机是经典的线性二分类模型，也是理解机器学习分类算法的重要基础。
+
+本项目没有直接调用 `sklearn` 等高级机器学习库，而是从零实现感知机算法，通过数学推导、代码实现和实验验证理解模型内部机制。
+
+重点研究以下问题：
+
+- 感知机如何通过误分类样本更新参数？
+- 为什么感知机在线性可分数据上能够收敛？
+- 原始形式与对偶形式有什么区别？
+- Gram 矩阵在对偶形式中有什么作用？
+- 样本数量如何影响模型训练？
+- 标签噪声如何影响感知机的收敛性？
+- 训练数据的线性可分性与模型泛化表现之间有什么关系？
+
+---
+
+# 2. Perceptron Algorithm
+
+## 2.1 Problem Definition
 
 给定训练数据：
 
@@ -31,51 +63,17 @@ $$
 x_i\in\mathbb{R}^d,\qquad y_i\in\{-1,+1\}
 $$
 
-感知机通过寻找一个超平面：
+感知机希望找到一个线性分类超平面：
 
 $$
-w^Tx+b=0
+w^T x+b=0
 $$
 
-将不同类别的样本分开。
-
-对于被错误分类的样本，如果满足：
-
-$$
-y_i(w^Tx_i+b)\leq0
-$$
-
-则进行参数更新：
-
-$$
-w\leftarrow w+y_ix_i
-$$
-
-$$
-b\leftarrow b+y_i
-$$
-
-当所有训练样本都被正确分类时，算法停止。
+将两个类别的样本分开。
 
 ---
 
-## 2. 项目目标
-
-本项目并不仅仅是实现一个可以运行的 Perceptron，而是希望通过实验理解以下问题：
-
-1. 感知机如何通过误分类样本更新参数？
-2. 为什么在线性可分数据上感知机可以收敛？
-3. 原始形式与对偶形式有什么区别？
-4. Gram 矩阵在对偶形式中起什么作用？
-5. 样本数量如何影响参数更新次数？
-6. 训练集与测试集之间有什么关系？
-7. 当数据存在标签噪声时，感知机的收敛性会发生什么变化？
-
----
-
-## 3. 算法原理
-
-### 3.1 原始形式
+## 2.2 Primal Form
 
 感知机直接维护参数：
 
@@ -83,48 +81,56 @@ $$
 w,b
 $$
 
-对于第 $i$ 个样本，如果：
+对于第 $i$ 个训练样本，如果：
 
 $$
-y_i(w^Tx_i+b)\leq0
+y_i(w^T x_i+b)\leq0
 $$
 
-则更新：
+则认为该样本被错误分类，并进行参数更新：
 
 $$
-w\leftarrow w+y_ix_i
+w\leftarrow w+y_i x_i
 $$
 
 $$
 b\leftarrow b+y_i
 $$
 
-本项目在 `src/perceptron_original.py` 中实现。
+模型的预测函数为：
+
+$$
+\hat{y}=\mathrm{sign}(w^T x+b)
+$$
+
+重复这一过程，直到所有训练样本均被正确分类。
+
+本项目在：
+
+```text
+src/perceptron_original.py
+```
+
+中实现感知机原始形式。
 
 ---
 
-### 3.2 对偶形式
+## 2.3 Dual Form
 
-感知机还可以表示为：
+感知机还可以使用对偶形式表示：
 
 $$
 w=\sum_{i=1}^{N}\alpha_i y_i x_i
 $$
 
-其中：
-
-$$
-\alpha_i\geq0
-$$
-
-表示第 $i$ 个样本参与参数更新的次数。
+其中 $\alpha_i$ 表示第 $i$ 个样本参与参数更新的次数。
 
 将其代入分类函数：
 
 $$
-w^Tx+b
+w^T x+b
 =
-\sum_{j=1}^{N}\alpha_jy_jx_j^Tx+b
+\sum_{j=1}^{N}\alpha_j y_j x_j^T x+b
 $$
 
 因此：
@@ -132,13 +138,13 @@ $$
 $$
 f(x)
 =
-\sum_{j=1}^{N}\alpha_jy_j(x_j^Tx)+b
+\sum_{j=1}^{N}\alpha_j y_j(x_j^T x)+b
 $$
 
 为了提高计算效率，可以预先计算 Gram 矩阵：
 
 $$
-G_{ij}=x_i^Tx_j
+G_{ij}=x_i^T x_j
 $$
 
 即：
@@ -147,11 +153,51 @@ $$
 G=XX^T
 $$
 
-本项目在 `src/perceptron_dual.py` 中实现感知机对偶形式。
+因此，在训练过程中可以通过 Gram 矩阵计算样本之间的内积。
+
+本项目在：
+
+```text
+src/perceptron_dual.py
+```
+
+中实现感知机对偶形式。
 
 ---
 
-## 4. 项目结构
+# 3. Workflow
+
+```text
+Input Data
+     ↓
+Initialize w, b
+     ↓
+Check y(wᵀx + b)
+     ↓
+Misclassified?
+    ↙        ↘
+  Yes         No
+   ↓           ↓
+Update      Continue
+   ↓
+Convergence?
+   ↓
+Prediction
+   ↓
+Evaluation
+```
+
+核心训练过程可以概括为：
+
+$$
+y_i(w^T x_i+b)\leq0
+\quad\Rightarrow\quad
+(w,b)\text{ update}
+$$
+
+---
+
+# 4. Project Structure
 
 ```text
 perceptron-from-statistical-learning/
@@ -183,9 +229,9 @@ perceptron-from-statistical-learning/
 
 ---
 
-# 5. 实验
+# 5. Experiments
 
-## 5.1 基础实验：分类决策边界
+## 5.1 Basic Experiment
 
 首先使用简单的二维线性可分数据：
 
@@ -223,11 +269,9 @@ $$
 
 ---
 
-## 5.2 随机数据实验
+## 5.2 Random Dataset Experiment
 
-为了验证感知机在随机线性可分数据上的表现，生成两个不同类别的二维随机数据集。
-
-实验记录：
+为了验证感知机在随机线性可分数据上的表现，生成二维随机数据集，并记录：
 
 - 参数 $w$
 - 偏置 $b$
@@ -235,63 +279,69 @@ $$
 - 参数更新次数
 - 分类准确率
 
-实验结果表明，在当前随机数据集上，感知机能够在较少的迭代次数内找到分类边界。
+实验代码：
+
+```text
+experiments/experiment_random.py
+```
+
+实验结果：
+
+![Random Dataset](results/figures/random_dataset.png)
 
 ---
 
-## 5.3 样本量实验
+## 5.3 Sample Size Experiment
 
-通过改变训练样本数量：
-
-```text
-20
-50
-100
-200
-500
-```
-
-观察样本数量对感知机训练过程的影响。
+通过改变训练样本数量，研究样本规模对感知机训练过程的影响。
 
 重点考察：
 
 $$
-\text{Sample Size}
+\mathrm{Sample\ Size}
 \rightarrow
-\text{Number of Updates}
+\mathrm{Number\ of\ Updates}
 $$
 
-由于感知机的训练过程依赖误分类样本，因此样本数量、数据分布以及样本顺序都会影响最终的参数更新次数。
+实验代码：
+
+```text
+experiments/experiment_sample_size.py
+```
+
+实验结果：
+
+![Updates vs Sample Size](results/figures/updates_vs_sample_size.png)
+
+该实验主要用于观察样本规模变化与感知机参数更新次数之间的关系。
 
 ---
 
-## 5.4 训练集与测试集实验
+## 5.4 Train / Test Experiment
 
 进一步将数据划分为训练集和测试集。
 
-训练过程：
+训练过程为：
 
 $$
 X_{train},y_{train}
 \rightarrow
-\text{Perceptron}
+\mathrm{Perceptron}
 \rightarrow
 (w,b)
 $$
 
-然后在未参与训练的测试集上进行预测：
+模型训练完成后，在测试集上进行预测：
 
 $$
-\hat y=\operatorname{sign}(w^Tx+b)
+\hat{y}=\mathrm{sign}(w^T x+b)
 $$
 
-分别计算：
+分别计算训练集和测试集准确率：
 
 $$
 Accuracy_{train}
 $$
-
-和：
 
 $$
 Accuracy_{test}
@@ -299,11 +349,21 @@ $$
 
 用于观察模型的泛化表现。
 
+实验代码：
+
+```text
+experiments/experiment_train_test.py
+```
+
+实验结果：
+
+![Train Test Accuracy](results/figures/train_test_accuracy.png)
+
 ---
 
-## 5.5 标签噪声实验
+# 6. Label Noise Experiment
 
-为了研究数据不可完全线性分离时感知机的表现，在训练集中随机翻转一定比例的标签。
+为了研究数据不再严格线性可分时感知机的表现，在训练集中随机翻转一定比例的标签。
 
 噪声水平设置为：
 
@@ -316,13 +376,15 @@ $$
 20%
 ```
 
-例如：
+标签翻转过程：
 
 ```python
 y_train[noise_indices] *= -1
 ```
 
-实验结果：
+---
+
+## 6.1 Experimental Results
 
 | Noise | Epochs | Updates | Train Accuracy | Test Accuracy |
 |---:|---:|---:|---:|---:|
@@ -333,55 +395,77 @@ y_train[noise_indices] *= -1
 | 15% | 1000 | 138545 | 0.6260 | 0.6904 |
 | 20% | 1000 | 178312 | 0.6640 | 0.7512 |
 
-这里的 `1000 epochs` 表示模型达到人为设置的最大训练轮数，而不是说明算法已经收敛。
+实验结果：
 
-### 实验现象
-
-当噪声为 0% 时，训练数据线性可分，感知机能够正常收敛。
-
-当加入标签噪声后，训练数据通常不再严格线性可分，因此感知机可能无法满足：
-
-$$
-y_i(w^Tx_i+b)>0
-$$
-
-对所有训练样本同时成立。
-
-因此模型会持续发现误分类样本并进行参数更新。
-
-从实验结果可以观察到：
-
-$$
-\text{Noise}\uparrow
-\quad\Rightarrow\quad
-\text{Updates generally increase}
-$$
-
-同时，测试准确率开始出现明显波动。
-
-这说明感知机的经典收敛性质依赖于训练数据的线性可分性。
+![Accuracy vs Noise](results/figures/accuracy_vs_noise.png)
 
 ---
 
-# 6. 实验结果可视化
+## 6.2 Experimental Analysis
 
-项目将实验生成的图片统一保存到：
+当噪声为 0% 时，训练数据保持线性可分，因此感知机能够正常收敛。
+
+当加入标签噪声后，训练数据通常不再严格线性可分。此时不存在一个参数组合能够同时满足所有样本：
+
+$$
+y_i(w^T x_i+b)>0
+$$
+
+因此感知机可能持续发现误分类样本并不断更新参数。
+
+实验中可以观察到，加入少量噪声后，参数更新次数大幅增加。
+
+例如：
 
 ```text
-results/figures/
+Noise = 0%
+Updates = 44
 ```
 
-包括：
+而：
 
-- `perceptron_boundary.png`：感知机分类决策边界
-- `random_dataset.png`：随机数据集
-- `updates_vs_sample_size.png`：样本量与更新次数关系
-- `train_test_accuracy.png`：训练集与测试集准确率
-- `accuracy_vs_noise.png`：标签噪声与测试准确率
+```text
+Noise = 2%
+Updates = 47226
+```
+
+这说明即使少量标签噪声不会立即导致测试准确率大幅下降，也可能显著影响感知机的训练过程和收敛行为。
+
+需要注意的是，当：
+
+```text
+Epochs = 1000
+```
+
+时，表示模型达到实验中设置的最大训练轮数，并不代表算法已经收敛。
 
 ---
 
-# 7. 如何运行
+# 7. Results
+
+本项目主要从三个方面观察感知机的行为：
+
+### 1. Classification
+
+在二维线性可分数据上，感知机能够学习线性分类边界。
+
+![Decision Boundary](results/figures/perceptron_boundary.png)
+
+### 2. Training Behavior
+
+样本规模的变化会影响感知机的参数更新过程。
+
+![Updates vs Sample Size](results/figures/updates_vs_sample_size.png)
+
+### 3. Noise and Convergence
+
+随着标签噪声增加，训练数据的线性可分性受到破坏，感知机的参数更新次数显著增加，并可能无法在有限训练轮数内收敛。
+
+![Accuracy vs Noise](results/figures/accuracy_vs_noise.png)
+
+---
+
+# 8. How to Run
 
 首先进入项目目录：
 
@@ -433,35 +517,34 @@ results/figures/
 
 ---
 
-# 8. 技术栈
+# 9. Tech Stack
 
-- Python
-- NumPy
-- Matplotlib
-- Git
-- GitHub
+- **Python** — Algorithm implementation
+- **NumPy** — Numerical computation
+- **Matplotlib** — Data visualization
+- **Git** — Version control
+- **GitHub** — Project management and collaboration
 
 ---
 
-# 9. 学习参考
+# 10. Learning Reference
 
 主要参考：
 
 > 李航，《统计学习方法》，人民邮电出版社。
 
-本项目主要对应书中的感知机章节，并在此基础上加入随机数据、训练测试划分以及噪声实验，用于进一步理解算法的训练过程和收敛性质。
+本项目主要对应《统计学习方法》中的感知机章节，并在理论实现基础上增加随机数据、样本规模、训练测试划分以及标签噪声实验，用于进一步理解算法的训练过程和收敛性质。
 
 ---
 
-# 10. 后续可以扩展的方向
+# 11. Future Extensions
 
 后续可以进一步研究：
 
-- 感知机的 Pocket Algorithm
-- 非线性分类
-- 核方法
-- 支持向量机
+- Pocket Algorithm
+- Kernel Perceptron
 - Logistic Regression
+- Support Vector Machine
 - 不同优化算法之间的比较
 - 更复杂的数据集
 - 多分类感知机
